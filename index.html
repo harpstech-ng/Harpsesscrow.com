@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Harps Tech Escrow | Buy & Sell Without Fear</title>
+<meta name="description" content="Worldwide escrow platform for physical and digital goods. 15 currencies, manual escrow, 3% fee only.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script type="importmap">
+{
+  "imports": {
+    "firebase/app": "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js",
+    "firebase/auth": "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js",
+    "firebase/firestore": "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js",
+    "firebase/analytics": "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js"
+  }
+}
+</script>
+<style>
+:root{
+  --bg-primary:#0a0e1a;
+  --bg-secondary:#111827;
+  --bg-card:#1a2234;
+  --bg-hover:#232b3e;
+  --text-primary:#ffffff;
+  --text-secondary:#9ca3af;
+  --text-muted:#6b7280;
+  --accent:#ff6b00;
+  --accent-light:#ff8533;
+  --accent-dark:#cc5500;
+  --success:#10b981;
+  --danger:#ef4444;
+  --warning:#f59e0b;
+  --border:#2d3748;
+  --gradient:linear-gradient(135deg,#ff6b00 0%,#ff8533 100%);
+  --gradient-dark:linear-gradient(135deg,#0a0e1a 0%,#1a2234 100%);
+  --shadow:0 20px 50px rgba(0,0,0,0.5);
+  --shadow-glow:0 0 40px rgba(255,107,0,0.3);
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Inter',sans-serif;
+  background:var(--bg-primary);
+  color:var(--text-primary);
+  overflow-x:hidden;
+  line-height:1.6;
+}
+
+body::before{
+  content:'';
+  position:fixed;
+  top:0;left:0;
+  width:100%;height:100%;
+  background:radial-gradient(circle at 20% 50%,rgba(255,107,0,0.15) 0%,transparent 50%),
+             radial-gradient(circle at 80% 20%,rgba(255,133,51,0.1) 0%,transparent 50%);
+  pointer-events:none;
+  z-index:0;
+}
+
+::-webkit-scrollbar{width:10px}
+::-webkit-scrollbar-track{background:var(--bg-secondary)}
+::-webkit-scrollbar-thumb{background:var(--accent);border-radius:5px}
+
+/* Header */
+header{
+  position:fixed;
+  top:0;left:0;right:0;
+  background:rgba(10,14,26,0.85);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  z-index:1000;
+}
+
+.nav-container{
+  max-width:1400px;
+  margin:0 auto;
+  padding:14px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+}
+
+.logo{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:700;
+  font-size:1.4rem;
+  text-decoration:none;
+  color:var(--text-primary);
+  flex-shrink:0;
+}
+
+.logo-icon{
+  width:38px;height:38px;
+  background:var(--gradient);
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.2rem;
+  box-shadow:var(--shadow-glow);
+}
+
+.logo span{color:var(--accent)}
+
+.nav-links{
+  display:flex;
+  align-items:center;
+  gap:25px;
+}
+
+.nav-links a{
+  color:var(--text-secondary);
+  text-decoration:none;
+  font-weight:500;
+  transition:0.3s;
+  white-space:nowrap;
+}
+
+.nav-links a:hover{color:var(--text-primary)}
+
+.nav-actions{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-shrink:0;
+}
+
+.currency-select{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  color:var(--text-primary);
+  padding:8px 12px;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:500;
+  outline:none;
+  font-size:0.9rem;
+}
+
+.btn{
+  padding:10px 20px;
+  border-radius:10px;
+  font-weight:600;
+  text-decoration:none;
+  transition:0.3s;
+  border:none;
+  cursor:pointer;
+  font-size:0.9rem;
+  white-space:nowrap;
+}
+
+.btn-primary{
+  background:var(--gradient);
+  color:white;
+  box-shadow:0 10px 30px rgba(255,107,0,0.3);
+}
+
+.btn-primary:hover{
+  transform:translateY(-2px);
+  box-shadow:0 15px 40px rgba(255,107,0,0.4);
+}
+
+.btn-ghost{
+  background:transparent;
+  color:var(--text-primary);
+  border:1px solid var(--border);
+}
+
+.btn-ghost:hover{
+  background:var(--bg-card);
+  border-color:var(--accent);
+}
+
+/* Mobile fixes */
+@media(max-width:968px){
+ .nav-links{display:none}
+ .nav-container{padding:12px 15px}
+ .logo{font-size:1.2rem}
+ .logo-icon{width:34px;height:34px}
+ .currency-select{padding:8px 10px;font-size:0.85rem}
+ .btn{padding:8px 16px;font-size:0.85rem}
+}
+
+@media(max-width:480px){
+ .currency-select{display:none}
+ .btn{padding:8px 14px;font-size:0.8rem}
+}
+
+/* Hero Section */
+.hero{
+  position:relative;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:120px 30px 80px;
+  z-index:1;
+}
+
+.hero-content{
+  max-width:1200px;
+  text-align:center;
+  position:relative;
+}
+
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background:rgba(255,107,0,0.1);
+  border:1px solid rgba(255,107,0,0.3);
+  padding:8px 20px;
+  border-radius:50px;
+  font-size:0.9rem;
+  margin-bottom:30px;
+  color:var(--accent);
+}
+
+.badge-dot{
+  width:8px;height:8px;
+  background:var(--accent);
+  border-radius:50%;
+  animation:pulse 2s infinite;
+}
+
+@keyframes pulse{
+ 0%,100%{opacity:1;transform:scale(1)}
+ 50%{opacity:0.5;transform:scale(1.2)}
+}
+
+.hero h1{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:4.5rem;
+  font-weight:700;
+  line-height:1.1;
+  margin-bottom:25px;
+  background:linear-gradient(135deg,#fff 0%,#9ca3af 100%);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+
+.hero h1 span{
+  background:var(--gradient);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+
+.hero p{
+  font-size:1.3rem;
+  color:var(--text-secondary);
+  max-width:700px;
+  margin:0 auto 50px;
+  line-height:1.8;
+}
+
+.hero-actions{
+  display:flex;
+  gap:20px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+
+/* Stats */
+.stats-section{
+  max-width:1200px;
+  margin:80px auto;
+  padding:0 30px;
+}
+
+.stats-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  gap:25px;
+}
+
+.stat-card{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  padding:35px;
+  border-radius:20px;
+  text-align:center;
+  transition:0.4s;
+  position:relative;
+  overflow:hidden;
+}
+
+.stat-card::before{
+  content:'';
+  position:absolute;
+  top:0;left:0;
+  width:100%;height:3px;
+  background:var(--gradient);
+  transform:scaleX(0);
+  transition:0.4s;
+}
+
+.stat-card:hover::before{transform:scaleX(1)}
+.stat-card:hover{
+  transform:translateY(-8px);
+  border-color:var(--accent);
+  box-shadow:var(--shadow);
+}
+
+.stat-value{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:3rem;
+  font-weight:700;
+  color:var(--accent);
+  margin-bottom:10px;
+}
+
+.stat-label{color:var(--text-secondary);font-size:0.95rem}
+
+/* Live Ticker */
+.ticker{
+  background:var(--bg-secondary);
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  padding:20px 0;
+  overflow:hidden;
+  white-space:nowrap;
+}
+
+.ticker-content{
+  display:inline-flex;
+  animation:scroll 30s linear infinite;
+}
+
+@keyframes scroll{
+ 0%{transform:translateX(0)}
+ 100%{transform:translateX(-50%)}
+}
+
+.ticker-item{
+  display:inline-flex;
+  align-items:center;
+  gap:15px;
+  margin-right:60px;
+  font-size:0.95rem;
+}
+
+.ticker-item.amount{color:var(--accent);font-weight:600}
+
+/* Features */
+.features{
+  max-width:1400px;
+  margin:120px auto;
+  padding:0 30px;
+}
+
+.section-header{
+  text-align:center;
+  margin-bottom:80px;
+}
+
+.section-header h2{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:3rem;
+  margin-bottom:15px;
+}
+
+.section-header p{
+  color:var(--text-secondary);
+  font-size:1.1rem;
+  max-width:600px;
+  margin:0 auto;
+}
+
+.features-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+  gap:30px;
+}
+
+.feature-card{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  padding:40px;
+  border-radius:20px;
+  transition:0.4s;
+  position:relative;
+}
+
+.feature-card:hover{
+  transform:translateY(-10px);
+  border-color:var(--accent);
+  box-shadow:var(--shadow);
+}
+
+.feature-icon{
+  width:60px;height:60px;
+  background:var(--gradient);
+  border-radius:16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.8rem;
+  margin-bottom:25px;
+}
+
+.feature-card h3{
+  font-size:1.5rem;
+  margin-bottom:15px;
+  font-family:'Space Grotesk',sans-serif;
+}
+
+.feature-card p{color:var(--text-secondary);line-height:1.8}
+
+/* How It Works */
+.how-it-works{
+  background:var(--bg-secondary);
+  padding:120px 30px;
+  position:relative;
+}
+
+.steps-container{
+  max-width:1200px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:40px;
+}
+
+.step-card{
+  text-align:center;
+  position:relative;
+}
+
+.step-number{
+  width:70px;height:70px;
+  background:var(--gradient);
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.8rem;
+  font-weight:700;
+  margin:0 auto 25px;
+  font-family:'Space Grotesk',sans-serif;
+  box-shadow:var(--shadow-glow);
+}
+
+.step-card h3{margin-bottom:15px;font-size:1.4rem}
+.step-card p{color:var(--text-secondary)}
+
+/* CTA Section */
+.cta{
+  max-width:1000px;
+  margin:120px auto;
+  padding:80px 50px;
+  background:var(--gradient);
+  border-radius:30px;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+
+.cta::before{
+  content:'';
+  position:absolute;
+  top:-50%;right:-50%;
+  width:200%;height:200%;
+  background:radial-gradient(circle,rgba(255,255,255,0.1) 0%,transparent 70%);
+  animation:rotate 20s linear infinite;
+}
+
+@keyframes rotate{
+ 0%{transform:rotate(0deg)}
+ 100%{transform:rotate(360deg)}
+}
+
+.cta-content{position:relative;z-index:1}
+.cta h2{font-size:3rem;margin-bottom:20px;font-family:'Space Grotesk',sans-serif}
+.cta p{font-size:1.2rem;margin-bottom:40px;opacity:0.95}
+.cta.btn{
+  background:white;
+  color:var(--accent);
+  font-size:1.1rem;
+  padding:16px 40px;
+}
+
+.cta.btn:hover{background:#f8fafc;transform:translateY(-3px)}
+
+/* Footer */
+footer{
+  background:var(--bg-secondary);
+  border-top:1px solid var(--border);
+  padding:80px 30px 40px;
+}
+
+.footer-content{
+  max-width:1400px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:2fr repeat(3,1fr);
+  gap:60px;
+  margin-bottom:60px;
+}
+
+.footer-col h4{
+  margin-bottom:20px;
+  font-size:1.1rem;
+  font-family:'Space Grotesk',sans-serif;
+}
+
+.footer-col ul{list-style:none}
+.footer-col ul li{margin-bottom:12px}
+.footer-col ul li a{
+  color:var(--text-secondary);
+  text-decoration:none;
+  transition:0.3s;
+}
+
+.footer-col ul li a:hover{color:var(--accent);padding-left:5px}
+
+.footer-bottom{
+  max-width:1400px;
+  margin:0 auto;
+  padding-top:40px;
+  border-top:1px solid var(--border);
+  text-align:center;
+  color:var(--text-muted);
+}
+
+/* Responsive */
+@media(max-width:968px){
+.hero h1{font-size:2.8rem}
+.hero p{font-size:1.1rem}
+.footer-content{grid-template-columns:1fr}
+.stats-grid{grid-template-columns:1fr}
+}
+
+/* Animations */
+.fade-in{
+  opacity:0;
+  transform:translateY(30px);
+  animation:fadeIn 0.8s forwards;
+}
+
+@keyframes fadeIn{
+  to{opacity:1;transform:translateY(0)}
+}
+
+.delay-1{animation-delay:0.2s}
+.delay-2{animation-delay:0.4s}
+.delay-3{animation-delay:0.6s}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav-container">
+    <a href="/" class="logo">
+      <div class="logo-icon">⚡</div>
+      Harps<span>Escrow</span>
+    </a>
+
+    <nav class="nav-links">
+      <a href="marketplace.html">Marketplace</a>
+      <a href="#features">Features</a>
+      <a href="#how-it-works">How It Works</a>
+      <a href="dispute-center.html">Support</a>
+    </nav>
+
+    <div class="nav-actions">
+      <select class="currency-select" id="currencySelect">
+        <option value="NGN" selected>🇳🇬 NGN</option>
+        <option value="USD">🇺🇸 USD</option>
+        <option value="EUR">🇪🇺 EUR</option>
+        <option value="GBP">🇬🇧 GBP</option>
+        <option value="KES">🇰🇪 KES</option>
+        <option value="GHS">🇬🇭 GHS</option>
+        <option value="ZAR">🇿🇦 ZAR</option>
+        <option value="CAD">🇨🇦 CAD</option>
+        <option value="AUD">🇦🇺 AUD</option>
+        <option value="AED">🇦🇪 AED</option>
+        <option value="INR">🇮🇳 INR</option>
+        <option value="JPY">🇯🇵 JPY</option>
+        <option value="CNY">🇨🇳 CNY</option>
+        <option value="BRL">🇧🇷 BRL</option>
+        <option value="TRY">🇹🇷 TRY</option>
+      </select>
+      <a href="auth.html" class="btn btn-ghost">Login</a>
+      <a href="auth.html" class="btn btn-primary">Start</a>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-content">
+    <div class="badge fade-in">
+      <span class="badge-dot"></span>
+      Trusted by 1,200+ traders worldwide
+    </div>
+
+    <h1 class="fade-in delay-1">
+      Buy & Sell Globally.<br>
+      <span>Zero Scam Risk.</span>
+    </h1>
+
+    <p class="fade-in delay-2">
+      Harps Tech Escrow holds your money safely until you confirm delivery.
+      Physical goods, digital accounts, services - everything protected with military-grade escrow.
+    </p>
+
+    <div class="hero-actions fade-in delay-3">
+      <a href="marketplace.html" class="btn btn-primary">Start Buying →</a>
+      <a href="create-listing.html" class="btn btn-ghost">Start Selling</a>
+    </div>
+  </div>
+</section>
+
+<div class="ticker">
+  <div class="ticker-content" id="tickerContent"></div>
+</div>
+
+<section class="stats-section">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-value" id="totalSecured">₦0</div>
+      <div class="stat-label">Total Secured</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="totalTrades">0</div>
+      <div class="stat-label">Successful Trades</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="successRate">0%</div>
+      <div class="stat-label">Success Rate</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">15</div>
+      <div class="stat-label">Currencies Supported</div>
+    </div>
+  </div>
+</section>
+
+<section class="features" id="features">
+  <div class="section-header">
+    <h2>Why Harps Tech Escrow?</h2>
+    <p>Built for trust, speed, and security in the digital economy</p>
+  </div>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🔒</div>
+      <h3>Military-Grade Escrow</h3>
+      <p>We hold funds until you confirm delivery. No release without your approval. Manual verification by our team ensures zero fraud.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">🌍</div>
+      <h3>15 Global Currencies</h3>
+      <p>Buy and sell in NGN, USD, EUR, GBP and 11 more currencies. Live exchange rates with auto-conversion at checkout.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <h3>Digital & Physical Goods</h3>
+      <p>Accounts, subscriptions, domains, crypto, phones, cars, land - if it has value, we protect it. Instant delivery for digital items.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">⚖️</div>
+      <h3>48hr Dispute Resolution</h3>
+      <p>Fair mediation with evidence upload, chat logs, and expert review. 96% of disputes resolved within 48 hours.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">💳</div>
+      <h3>Only 3% Fee</h3>
+      <p>Transparent pricing. No hidden charges. 3% on successful transactions only. Buyer pays nothing extra.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">🛡️</div>
+      <h3>Verified Sellers</h3>
+      <p>4-level KYC verification. ID check, phone verification, bank verification, and video KYC for high-value sellers.</p>
+    </div>
+  </div>
+</section>
+
+<section class="how-it-works" id="how-it-works">
+  <div class="section-header">
+    <h2>How It Works</h2>
+    <p>3 simple steps to trade safely anywhere in the world</p>
+  </div>
+
+  <div class="steps-container">
+    <div class="step-card">
+      <div class="step-number">1</div>
+      <h3>Buyer Pays Escrow</h3>
+      <p>Buyer pays to Harps Tech escrow account. We hold the funds securely. Seller gets notified to prepare the item.</p>
+    </div>
+
+    <div class="step-card">
+      <div class="step-number">2</div>
+      <h3>Seller Delivers</h3>
+      <p>Seller ships item or delivers digital credentials. Upload proof of delivery. Buyer has 48 hours to verify.</p>
+    </div>
+
+    <div class="step-card">
+      <div class="step-number">3</div>
+      <h3>Funds Released</h3>
+      <p>Buyer confirms receipt. We release payment minus 3% fee to seller. Dispute? We mediate fairly.</p>
+    </div>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="cta-content">
+    <h2>Ready to Trade Safely?</h2>
+    <p>Join thousands of traders who trust Harps Tech Escrow for secure transactions worldwide.</p>
+    <a href="auth.html" class="btn">Create Free Account</a>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-content">
+    <div class="footer-col">
+      <a href="/" class="logo" style="margin-bottom:20px;display:inline-flex">
+        <div class="logo-icon">⚡</div>
+        Harps<span>Escrow</span>
+      </a>
+      <p style="color:var(--text-secondary);line-height:1.8">
+        The world's most trusted escrow platform for digital and physical goods.
+        Trade with confidence, anywhere, anytime.
+      </p>
+    </div>
+
+    <div class="footer-col">
+      <h4>Platform</h4>
+      <ul>
+        <li><a href="marketplace.html">Marketplace</a></li>
+        <li><a href="create-listing.html">Sell Item</a></li>
+        <li><a href="#">Pricing</a></li>
+        <li><a href="#">API Docs</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h4>Company</h4>
+      <ul>
+        <li><a href="#">About Us</a></li>
+        <li><a href="#">Careers</a></li>
+        <li><a href="#">Press</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h4>Legal</h4>
+      <ul>
+        <li><a href="#">Terms of Service</a></li>
+        <li><a href="#">Privacy Policy</a></li>
+        <li><a href="#">Escrow Agreement</a></li>
+        <li><a href="#">Refund Policy</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <p>© 2026 Harps Tech Escrow. All rights reserved. Built with trust in Lagos, Nigeria.</p>
+  </div>
+</footer>
+
+<script type="module">
+import { initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
+import { getAnalytics } from 'firebase/analytics';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDz7bgFTWTm3tlzNB8qSo9wzem9sj4N2Fo",
+  authDomain: "harps-escrow.firebaseapp.com",
+  projectId: "harps-escrow",
+  storageBucket: "harps-escrow.firebasestorage.app",
+  messagingSenderId: "602261203420",
+  appId: "1:602261203420:web:f5d76b79d7fc85a143c719",
+  measurementId: "G-3XDHY97SXB"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const analytics = getAnalytics(app);
+
+const exchangeRates = {
+  USD:1, EUR:0.92, GBP:0.79, NGN:1550, KES:148, GHS:12.5, ZAR:18.5,
+  CAD:1.35, AUD:1.52, AED:3.67, INR:83.2, JPY:148, CNY:7.25, BRL:5.1, TRY:28.5
+};
+
+const currencySymbols = {
+  USD:'$', EUR:'€', GBP:'£', NGN:'₦', KES:'KSh', GHS:'₵', ZAR:'R',
+  CAD:'C$', AUD:'A$', AED:'AED', INR:'₹', JPY:'¥', CNY:'¥', BRL:'R$', TRY:'₺'
+};
+
+let currentCurrency = 'NGN';
+
+const tickerData = [
+  {item:'iPhone 15 Pro', from:'Lagos', to:'London', amount:1200, currency:'USD'},
+  {item:'Netflix Premium', from:'Accra', to:'New York', amount:45, currency:'USD'},
+  {item:'Toyota Camry', from:'Abuja', to:'Dubai', amount:12500, currency:'USD'},
+  {item:'Instagram Account', from:'Nairobi', to:'Toronto', amount:250, currency:'USD'},
+  {item:'MacBook Pro M3', from:'Cape Town', to:'Berlin', amount:2200, currency:'USD'},
+  {item:'Spotify Family', from:'Mumbai', to:'Sydney', amount:15, currency:'USD'}
+];
+
+function initTicker(){
+  const ticker = document.getElementById('tickerContent');
+  const items = [...tickerData,...tickerData];
+  ticker.innerHTML = items.map(item => {
+    const converted = convertCurrency(item.amount,item.currency,currentCurrency);
+    return `
+      <div class="ticker-item">
+        <span>🔥</span>
+        <span>${item.item}</span>
+        <span>${item.from} → ${item.to}</span>
+        <span class="amount">${formatCurrency(converted,currentCurrency)}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+function convertCurrency(amount,from,to){
+  const usdAmount = amount / exchangeRates[from];
+  return usdAmount * exchangeRates[to];
+}
+
+function formatCurrency(amount,currency){
+  return currencySymbols[currency] + new Intl.NumberFormat().format(Math.round(amount));
+}
+
+function animateCounter(element,target,prefix='',suffix=''){
+  let current = 0;
+  const increment = target / 100;
+  const timer = setInterval(() => {
+    current += increment;
+    if(current >= target){
+      current = target;
+      clearInterval(timer);
+    }
+    element.textContent = prefix + new Intl.NumberFormat().format(Math.round(current)) + suffix;
+  },20);
+}
+
+function initStats(){
+  const baseAmount = 2450000;
+  const converted = convertCurrency(baseAmount/1550,'USD',currentCurrency);
+  animateCounter(document.getElementById('totalSecured'),converted,currencySymbols[currentCurrency]);
+  animateCounter(document.getElementById('totalTrades'),1200);
+  animateCounter(document.getElementById('successRate'),99.2,'','%');
+}
+
+document.getElementById('currencySelect').addEventListener('change',(e) => {
+  currentCurrency = e.target.value;
+  initTicker();
+  initStats();
+});
+
+window.addEventListener('scroll',() => {
+  const header = document.querySelector('header');
+  if(window.scrollY > 50){
+    header.style.background = 'rgba(10,14,26,0.95)';
+    header.style.boxShadow = '0 10px 30px rgba(0,0,0,0.3)';
+  }else{
+    header.style.background = 'rgba(10,14,26,0.85)';
+    header.style.boxShadow = 'none';
+  }
+});
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if(entry.isIntersecting){
+      entry.target.style.opacity = '1';
+      entry.target.style.transform = 'translateY(0)';
+    }
+  });
+},{threshold:0.1});
+
+document.querySelectorAll('.feature-card,.step-card,.stat-card').forEach(el => {
+  el.style.opacity = '0';
+  el.style.transform = 'translateY(30px)';
+  el.style.transition = '0.6s';
+  observer.observe(el);
+});
+
+document.addEventListener('DOMContentLoaded',() => {
+  initTicker();
+  initStats();
+  setInterval(initStats,30000);
+});
+
+console.log('%cHarps Tech Escrow v2.0','color:#ff6b00;font-size:20px;font-weight:bold');
+console.log('%cPowered by Firebase','color:#9ca3af;font-size:14px');
+</script>
+
+</body>
+</html>
